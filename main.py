@@ -1,26 +1,40 @@
-from fastapi import FastAPI, HTTPException
-from typing import Optional
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Sample data (for demonstration purposes)
-data = [
-    {"id": 1, "name": "Item 1", "description": "This is the first item."},
-    {"id": 2, "name": "Item 2", "description": "This is the second item."},
-    {"id": 3, "name": "Item 3", "description": "This is the third item."},
+origins = [
+    "http://localhost:3000",  # Your frontend's local development origin
+    "https://salary-management-app-oflt.vercel.app/"  # Your production frontend domain
 ]
 
-# Root endpoint
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with specific domains if needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the API!"}
+    return {"message": "Welcome to the FastAPI app deployed on Vercel!"}
 
-# GET endpoint to retrieve all items or filter by id
 @app.get("/items/")
-def get_items(id: Optional[int] = None):
+def get_items(id: int = None):
+    data = [
+        {"id": 1, "name": "Item 1", "description": "This is the first item."},
+        {"id": 2, "name": "Item 2", "description": "This is the second item."},
+        {"id": 3, "name": "Item 3", "description": "This is the third item."},
+    ]
     if id is not None:
         item = next((item for item in data if item["id"] == id), None)
         if item is None:
-            raise HTTPException(status_code=404, detail="Item not found")
+            return {"detail": "Item not found"}
         return item
     return data
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=5000)
